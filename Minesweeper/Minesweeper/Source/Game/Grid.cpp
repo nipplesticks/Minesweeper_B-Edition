@@ -22,6 +22,11 @@ void Grid::Init(int sizeX, int sizeY, int bombs)
 	_initBarItems();
 }
 
+void Grid::Restart()
+{
+    Init(m_width, m_height, m_gameStats.BombsAtStart);
+}
+
 void Grid::Update(const sf::Vector2i & mp, float dt)
 {
 	m_drawHighlight = false;

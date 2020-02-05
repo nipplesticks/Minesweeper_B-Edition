@@ -11,6 +11,8 @@ struct MouseInputVars
 	float timePassedSinceLastActivation = 0.0f;
 };
 
+bool g_keyboardPressed = false;
+
 bool MouseEvents(Grid & grid, const sf::Vector2i &mp, MouseInputVars & miv);
 MainMenu::ButtonPressed MouseEvents(MainMenu & menu, const sf::Vector2i &mp, MouseInputVars & miv);
 
@@ -53,6 +55,13 @@ int main()
 	gameMessage.setTextColor(55, 0, 0);
 	MouseInputVars miv;
 	bool keyPressed = false;
+  bool lPressed = false;
+  bool rPressed = false;
+  bool uPressed = false;
+  bool dPressed = false;
+
+
+  sf::Vector2i keyboardSteper(0, 0);
 
 	sf::Clock loopClock;
 
@@ -70,12 +79,54 @@ int main()
 		sf::Event event;
 		while (window.pollEvent(event))
 		{
-			if (event.type == sf::Event::Closed)
-				window.close();
+        if (event.type == sf::Event::Closed)
+            window.close();
+        else if (event.type == sf::Event::MouseMoved)
+            g_keyboardPressed = false;
 		}
 		if (window.hasFocus())
 		{
 			auto mp = sf::Mouse::getPosition(window);
+
+      bool lPress = sf::Keyboard::isKeyPressed(sf::Keyboard::Left);
+      bool rPress = sf::Keyboard::isKeyPressed(sf::Keyboard::Right);
+      bool uPress = sf::Keyboard::isKeyPressed(sf::Keyboard::Up);
+      bool dPress = sf::Keyboard::isKeyPressed(sf::Keyboard::Down);
+
+      g_keyboardPressed = g_keyboardPressed || lPress || rPress || uPress || dPress ||
+          sf::Keyboard::isKeyPressed(sf::Keyboard::Enter) || sf::Keyboard::isKeyPressed(sf::Keyboard::Space);
+
+      if (lPress && !lPressed)
+          keyboardSteper.x -= 1;
+      if (rPress && !rPressed)
+          keyboardSteper.x += 1;
+      if (uPress && !uPressed)
+          keyboardSteper.y -= 1;
+      if (dPress && !dPressed)
+          keyboardSteper.y += 1;
+
+      lPressed = lPress;
+      rPressed = rPress;
+      uPressed = uPress;
+      dPressed = dPress;
+
+      if (!g_keyboardPressed)
+      {
+          keyboardSteper.x = mp.x / 32;
+          keyboardSteper.y = mp.y / 32;
+      }
+      else
+      {
+          keyboardSteper.x = keyboardSteper.x < 0 ? 0 : keyboardSteper.x;
+          keyboardSteper.x = keyboardSteper.x > window.getSize().x / 32 ? window.getSize().x / 32 : keyboardSteper.x;
+
+          keyboardSteper.y = keyboardSteper.y < 1 ? 1 : keyboardSteper.y;
+          keyboardSteper.y = keyboardSteper.y > window.getSize().y / 32 ? window.getSize().y / 32 : keyboardSteper.y;
+
+          mp.x = keyboardSteper.x * 32;
+          mp.y = keyboardSteper.y * 32;
+          sf::Mouse::setPosition(mp, window);
+      }
 
 			if (game)
 			{
@@ -150,7 +201,13 @@ int main()
 bool MouseEvents(Grid & grid, const sf::Vector2i &mp, MouseInputVars & miv)
 {
 	bool canContinue = true;
-	if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
+  if (sf::Keyboard::isKeyPressed(sf::Keyboard::R))
+  {
+      grid.Restart();
+      return true;
+  }
+
+	if (sf::Mouse::isButtonPressed(sf::Mouse::Left) || (g_keyboardPressed && sf::Keyboard::isKeyPressed(sf::Keyboard::Space)))
 	{
 		if (!miv.LeftButtonLastFrame)
 		{
@@ -162,7 +219,7 @@ bool MouseEvents(Grid & grid, const sf::Vector2i &mp, MouseInputVars & miv)
 	{
 		miv.LeftButtonLastFrame = false;
 	}
-	if (sf::Mouse::isButtonPressed(sf::Mouse::Right))
+	if (sf::Mouse::isButtonPressed(sf::Mouse::Right) || (g_keyboardPressed && sf::Keyboard::isKeyPressed(sf::Keyboard::Enter)))
 	{
 		if (!miv.RightButtonLastFrame)
 		{

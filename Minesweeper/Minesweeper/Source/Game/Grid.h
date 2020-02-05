@@ -46,6 +46,7 @@ public:
 	Grid();
 	~Grid();
 	void Init(int sizeX, int sizeY, int bombs);
+  void Restart();
 	void Update(const sf::Vector2i & mp, float dt);
 
 	// will return false if not allowed to continue
